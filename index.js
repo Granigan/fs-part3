@@ -27,7 +27,27 @@ let persons = [
 ];
 
 app.use(bodyParser.json());
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
+morgan.token("dexter", (req) => {
+  return JSON.stringify(req.body);
+});
+
+//app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
+
+app.use(
+  morgan((tokens, req, res) => {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, "content-length"),
+      "-",
+      tokens["response-time"](req, res),
+      "ms",
+      tokens.dexter(req)
+    ].join(" ");
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("<h2>there's nothing here, go to /api/persons instead</h2>");
