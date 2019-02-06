@@ -82,8 +82,6 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error));
 });
 
-app.use(errorHandler);
-
 app.post("/api/persons/", (req, res) => {
   const person = req.body;
 
@@ -136,6 +134,8 @@ app.put("/api/persons/:id", (req, res) => {
   }
   return res.status(400).json({ error: "id/name mismatch" });
 });
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
