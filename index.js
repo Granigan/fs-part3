@@ -6,6 +6,8 @@ const morgan = require("morgan");
 const cors = require("cors");
 const Person = require("./models/person");
 
+const PORT = process.env.PORT;
+
 let persons = [
   {
     id: 1,
@@ -29,6 +31,7 @@ let persons = [
   }
 ];
 
+app.use(express.static("build"));
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -50,7 +53,12 @@ app.use(
   })
 );
 
-app.use(express.static("build"));
+const errorHandler = (error, req, res, next) => {
+  if (error.name === "CastError" && error.kind == "ObjectId") {
+    return res.status(400).send({ error: "malformatted id" });
+  }
+  next(error);
+};
 
 app.get("/", (req, res) => {
   res.send("<h2>there's nothing here, go to /api/persons instead</h2>");
@@ -62,11 +70,19 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  Person.findById(req.params.id).then(person => {
-    res.json(person.toJSON());
-  });
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person.toJSON());
+      } else {
+        res.status(204).end();
+      }
+    })
+    .catch(error => next(error));
 });
+
+app.use(errorHandler);
 
 app.post("/api/persons/", (req, res) => {
   const person = req.body;
@@ -99,10 +115,12 @@ app.get("/info", (req, res) => {
           <p>${new Date()}</p>`);
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter(person => person.id !== id);
-  res.status(204).end();
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch(error => next(error));
 });
 
 app.put("/api/persons/:id", (req, res) => {
@@ -118,8 +136,6 @@ app.put("/api/persons/:id", (req, res) => {
   }
   return res.status(400).json({ error: "id/name mismatch" });
 });
-
-const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
