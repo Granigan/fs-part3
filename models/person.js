@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+mongoose.set("useFindAndModify", false);
+
 const mongoURI = process.env.MONGO_URI;
 
 mongoose

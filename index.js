@@ -106,11 +106,12 @@ app.post("/api/persons/", (req, res) => {
 });
 
 app.get("/info", (req, res) => {
-  const amountOfPersons = persons.reduce(acc => {
-    return acc + 1;
-  }, 0);
-  res.send(`<p>Puhelinluettelossa on ${amountOfPersons} henkilön tiedot.</p>
+  Person.find({}).then(people => {
+    res.send(`<p>Puhelinluettelossa on ${people.reduce(sum => {
+      return sum + 1;
+    }, 0)} henkilön tiedot.</p>
           <p>${new Date()}</p>`);
+  });
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
