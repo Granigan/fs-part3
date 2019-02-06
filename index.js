@@ -48,6 +48,8 @@ app.use(
   })
 );
 
+app.use(express.static("build"));
+
 app.get("/", (req, res) => {
   res.send("<h2>there's nothing here, go to /api/persons instead</h2>");
 });
