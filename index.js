@@ -6,7 +6,6 @@ const morgan = require("morgan");
 const cors = require("cors");
 const Person = require("./models/person");
 
-const PORT = process.env.PORT;
 
 let persons = [
   {
@@ -134,6 +133,8 @@ app.put("/api/persons/:id", (req, res, next) => {
 });
 
 app.use(errorHandler);
+
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
