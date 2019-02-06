@@ -121,18 +121,15 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error));
 });
 
-app.put("/api/persons/:id", (req, res) => {
-  const updatedPerson = persons.find(
-    person => person.id === Number(req.params.id)
-  );
-  if (updatedPerson.name === req.body.name) {
-    updatedPerson.number = req.body.number;
-    persons = persons
-      .filter(person => person.id !== req.body.id)
-      .concat(updatedPerson);
-    return res.json(updatedPerson);
-  }
-  return res.status(400).json({ error: "id/name mismatch" });
+app.put("/api/persons/:id", (req, res, next) => {
+  const person = {
+    number: req.body.number
+  };
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then(updatedPerson => {
+      res.json(updatedPerson.toJSON());
+    })
+    .catch(error => next(error));
 });
 
 app.use(errorHandler);
