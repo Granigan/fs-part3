@@ -62,22 +62,41 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
+app.get("/api/persons/:id", (req, res) => {
+  Person.findById(req.params.id).then(person => {
+    res.json(person.toJSON());
+  });
+});
+
+app.post("/api/persons/", (req, res) => {
+  const person = req.body;
+
+  if (person.name === undefined) {
+    return res.status(400).json({ error: "name missing" });
+  }
+  if (person.number === undefined) {
+    return res.status(400).json({ error: "number missing" });
+  }
+  if (persons.find(person => person.name === req.body.name)) {
+    return res.status(400).json({ error: "name must be unique" });
+  }
+
+  const newPerson = new Person({
+    name: person.name,
+    number: person.number
+  });
+
+  newPerson.save().then(savedPerson => {
+    res.json(savedPerson.toJSON());
+  });
+});
+
 app.get("/info", (req, res) => {
   const amountOfPersons = persons.reduce(acc => {
     return acc + 1;
   }, 0);
   res.send(`<p>Puhelinluettelossa on ${amountOfPersons} henkilön tiedot.</p>
           <p>${new Date()}</p>`);
-});
-
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find(person => person.id === id);
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
 });
 
 app.delete("/api/persons/:id", (req, res) => {
@@ -98,24 +117,6 @@ app.put("/api/persons/:id", (req, res) => {
     return res.json(updatedPerson);
   }
   return res.status(400).json({ error: "id/name mismatch" });
-});
-
-app.post("/api/persons/", (req, res) => {
-  const person = req.body;
-
-  if (person.name === undefined) {
-    return res.status(400).json({ error: "name missing" });
-  }
-  if (person.number === undefined) {
-    return res.status(400).json({ error: "number missing" });
-  }
-  if (persons.find(person => person.name === req.body.name)) {
-    return res.status(400).json({ error: "name must be unique" });
-  }
-
-  person.id = Math.round(Math.random() * 1000);
-  persons = persons.concat(person);
-  res.json(person);
 });
 
 const PORT = process.env.PORT;
