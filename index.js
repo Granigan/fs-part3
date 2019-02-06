@@ -82,6 +82,20 @@ app.delete("/api/persons/:id", (req, res) => {
   res.status(204).end();
 });
 
+app.put("/api/persons/:id", (req, res) => {
+  const updatedPerson = persons.find(
+    person => person.id === Number(req.params.id)
+  );
+  if (updatedPerson.name === req.body.name) {
+    updatedPerson.number = req.body.number;
+    persons = persons
+      .filter(person => person.id !== req.body.id)
+      .concat(updatedPerson);
+    return res.json(updatedPerson);
+  }
+  return res.status(400).json({ error: "id/name mismatch" });
+});
+
 app.post("/api/persons/", (req, res) => {
   const person = req.body;
 
