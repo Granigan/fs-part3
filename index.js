@@ -6,7 +6,6 @@ const morgan = require("morgan");
 const cors = require("cors");
 const Person = require("./models/person");
 
-
 let persons = [
   {
     id: 1,
@@ -53,8 +52,15 @@ app.use(
 );
 
 const errorHandler = (error, req, res, next) => {
+  console.log("\nERRORI HANDLAA\n");
+  console.log(error);
+  console.log(error.name);
+
   if (error.name === "CastError" && error.kind == "ObjectId") {
     return res.status(400).send({ error: "malformatted id" });
+  }
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ error: error.message });
   }
   next(error);
 };
@@ -81,7 +87,7 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error));
 });
 
-app.post("/api/persons/", (req, res) => {
+app.post("/api/persons/", (req, res, next) => {
   const person = req.body;
 
   if (person.name === undefined) {
@@ -99,9 +105,12 @@ app.post("/api/persons/", (req, res) => {
     number: person.number
   });
 
-  newPerson.save().then(savedPerson => {
-    res.json(savedPerson.toJSON());
-  });
+  newPerson
+    .save()
+    .then(savedPerson => {
+      res.json(savedPerson.toJSON());
+    })
+    .catch(error => next(error));
 });
 
 app.get("/info", (req, res) => {
@@ -125,7 +134,11 @@ app.put("/api/persons/:id", (req, res, next) => {
   const person = {
     number: req.body.number
   };
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query"
+  })
     .then(updatedPerson => {
       res.json(updatedPerson.toJSON());
     })
